@@ -54,6 +54,7 @@ combined = clone(eer_config)
 combined[:aws][:s3] = combined[:s3]
 combined.delete(:s3)
 combined[:aws][:emr] = combined[:emr]
+combined[:aws][:emr][:bootstrap_failure_tries] = 3
 combined.delete(:emr)
 
 # Multiple in buckets are now permitted
@@ -77,13 +78,20 @@ combined[:storage] = clone(sl_config)
 combined[:storage].delete(:aws)
 combined[:storage].delete(:s3)
 
+combined[:monitoring] = {
+  tags: {},
+  logging: combined[:logging],
+  snowplow: nil
+}
+combined.delete(:logging)
+
 # Separate the :resolver section into its own file
 resolver = combined[:iglu]
 combined.delete(:iglu)
 
 combined = recursive_stringify_keys(combined)
 
-resolver_json = JSON.pretty_generate(JSON.parse(combined.to_json))
+resolver_json = JSON.pretty_generate(JSON.parse(resolver.to_json))
 
 combined_configuration_yaml = combined.to_yaml
 
